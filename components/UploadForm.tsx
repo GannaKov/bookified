@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { UploadSchema } from "@/lib/zod";
 import { Upload, ImageIcon, X } from "lucide-react";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import {
@@ -15,24 +16,11 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {MAX_FILE_SIZE,ACCEPTED_PDF_TYPES, MAX_IMAGE_SIZE, ACCEPTED_IMAGE_TYPES} from "@/lib/lib/constants";
+
 
 // ─── Zod Schema ────────────────────────────────────────────────────────────────
 
-const formSchema = z.object({
-    pdf: z
-        .instanceof(File, { message: "Please upload a PDF file." })
-        .refine((f) => ACCEPTED_PDF_TYPES.includes(f.type), "Only PDF files are accepted")
-        .refine((f) => f.size <= MAX_FILE_SIZE, "PDF must be under 50 MB."),
-    coverImage: z.instanceof(File).optional()
-        .refine((file) => !file || file.size <= MAX_IMAGE_SIZE, "Image size must be less than 10MB")
-        .refine((file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), "Only .jpg, .jpeg, .png and .webp formats are supported"),
-    title: z.string().min(1, "Title is required.").max(100, "Title is too long"),
-    author: z.string().min(1, "Author name is required.").max(100, "Author name is too long"),
-    voice: z.string().min(1, "Please select a voice."),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof UploadSchema>;
 
 // ─── Voice Data ────────────────────────────────────────────────────────────────
 
@@ -61,7 +49,7 @@ const UploadForm = () => {
     const coverInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(UploadSchema),
         defaultValues: { voice: "rachel" },
     });
 
@@ -128,8 +116,11 @@ const UploadForm = () => {
                                 <FormLabel className="form-label">Book PDF File</FormLabel>
                                 <FormControl>
                                     <div
-                                        className={`upload-dropzone border-2 border-dashed border-[var(--border-medium)] ${pdfFile ? "upload-dropzone-uploaded" : ""}`}
+                                        className={`upload-dropzone border-2 border-dashed border-(--border-medium) ${pdfFile ? "upload-dropzone-uploaded" : ""}`}
                                         onClick={() => pdfInputRef.current?.click()}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pdfInputRef.current?.click(); } }}
                                     >
                                         <input
                                             ref={pdfInputRef}
@@ -176,6 +167,9 @@ const UploadForm = () => {
                                     <div
                                         className={`upload-dropzone border-2 border-dashed border-[var(--border-medium)] ${coverFile ? "upload-dropzone-uploaded" : ""}`}
                                         onClick={() => coverInputRef.current?.click()}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); coverInputRef.current?.click(); } }}
                                     >
                                         <input
                                             ref={coverInputRef}
@@ -263,6 +257,7 @@ const UploadForm = () => {
                                     {VOICES.male.map((voice) => (
                                         <label
                                             key={voice.id}
+                                            htmlFor={`${field.name}-${voice.id}`}
                                             className={`voice-selector-option ${
                                                 selectedVoice === voice.id
                                                     ? "voice-selector-option-selected"
@@ -272,6 +267,7 @@ const UploadForm = () => {
                                             <FormControl>
                                                 <input
                                                     type="radio"
+                                                    id={`${field.name}-${voice.id}`}
                                                     value={voice.id}
                                                     checked={field.value === voice.id}
                                                     onChange={() => field.onChange(voice.id)}
@@ -309,6 +305,7 @@ const UploadForm = () => {
                                     {VOICES.female.map((voice) => (
                                         <label
                                             key={voice.id}
+                                            htmlFor={`${field.name}-${voice.id}`}
                                             className={`voice-selector-option ${
                                                 selectedVoice === voice.id
                                                     ? "voice-selector-option-selected"
@@ -318,6 +315,7 @@ const UploadForm = () => {
                                             <FormControl>
                                                 <input
                                                     type="radio"
+                                                    id={`${field.name}-${voice.id}`}
                                                     value={voice.id}
                                                     checked={field.value === voice.id}
                                                     onChange={() => field.onChange(voice.id)}
