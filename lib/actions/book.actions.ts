@@ -11,16 +11,6 @@ export const createBook = async (data: CreateBook) => {
 
         const slug = generateSlug(data.title);
 
-        const existingBook = await Book.findOne({slug}).lean();
-
-        if(existingBook) {
-            return {
-                success: true,
-                data: serializeData(existingBook),
-                alreadyExists: true,
-            }
-        }
-
         // Todo: Check subscription limits before creating a book
        /*const { getUserPlan } = await import("@/lib/subscription.server");
      const { PLAN_LIMITS } = await import("@/lib/subscription-constants");
@@ -50,18 +40,25 @@ export const createBook = async (data: CreateBook) => {
 
        const book = await Book.create({...data, clerkId: userId, slug, totalSegments: 0});*/
 
+        const { value: book, lastErrorObject } = await Book.findOneAndUpdate(
+            { slug },
+            { $setOnInsert: { ...data, slug, totalSegments: 0 } },
+            { upsert: true, new: true, rawResult: true, lean: true }
+        );
 
-        const book = await Book.create({...data,  slug, totalSegments: 0});
+        const alreadyExists = !lastErrorObject?.upserted;
+
         return {
             success: true,
             data: serializeData(book),
+            ...(alreadyExists && { alreadyExists: true }),
         }
     } catch (e) {
         console.error('Error creating a book', e);
 
         return {
             success: false,
-            error: e,
+            error: e instanceof Error ? e.message : "Failed to create book",
         }
     }
 }

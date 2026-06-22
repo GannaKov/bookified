@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Serialize Mongoose documents to plain JSON objects (strips ObjectId, Date, etc.)
-export const serializeData = <T>(data: T): T => JSON.parse(JSON.stringify(data));
+export const serializeData = <T>(data: T): unknown => JSON.parse(JSON.stringify(data));
 // Auto generate slug
 export function generateSlug(text: string): string {
     return text
@@ -15,7 +15,8 @@ export function generateSlug(text: string): string {
         .trim() // Remove whitespace from both ends
         .replace(/[^\w\s-]/g, '') // Remove special characters (keep letters, numbers, spaces, hyphens)
         .replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
-        .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+        .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+        || 'untitled'; // Fallback if result is empty
 }
 
 // Escape regex special characters to prevent ReDoS attacks
