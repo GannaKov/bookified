@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_FILE_SIZE, ACCEPTED_PDF_TYPES, MAX_IMAGE_SIZE, ACCEPTED_IMAGE_TYPES } from "@/lib/lib/constants";
+import { MAX_FILE_SIZE, ACCEPTED_PDF_TYPES, MAX_IMAGE_SIZE, ACCEPTED_IMAGE_TYPES } from "@/lib/constants";
 
 export const UploadSchema = z.object({
     pdf: z
